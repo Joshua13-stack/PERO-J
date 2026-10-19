@@ -1,11 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
 import EventTable from './components/EventTable';
 import DisputePage from './pages/DisputePage';
+import { getDataSource, subscribeDataSource, type DataSource } from './lib/api-client';
 
 function App() {
   const [navOpen, setNavOpen] = useState(false);
+  const [dataSource, setDataSource] = useState<DataSource>(getDataSource());
+
+  useEffect(() => subscribeDataSource(setDataSource), []);
 
   return (
     <BrowserRouter>
@@ -29,6 +33,11 @@ function App() {
             <a href="#ledgers">Ledgers</a>
           </nav>
         </header>
+        {dataSource === 'on-chain' && (
+          <div className="app-warning" role="status">
+            Operating in direct on-chain mode
+          </div>
+        )}
         <main className="app-main">
           <Routes>
             <Route path="/" element={<EventTable />} />
