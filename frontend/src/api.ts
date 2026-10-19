@@ -45,6 +45,24 @@ export interface ContractsResponse {
   limit: number;
 }
 
+export interface ProposedOutcome {
+  id: string;
+  contract_id: string;
+  outcome: string;
+  proposer: string;
+  proposed_at: string;
+  challenge_deadline: string;
+  disputer_bond: string;
+  challenge_reward: string;
+  status: "proposed" | "challenged" | "finalized";
+}
+
+export interface ChallengeResponse {
+  ok: boolean;
+  tx_hash?: string;
+  outcome: ProposedOutcome;
+}
+
 export class ApiError extends Error {
   status: number;
 
@@ -138,5 +156,8 @@ export const api = {
   contract:         (id: string)                          => get<ContractMeta>(`/contracts/${id}`),
   wallet:           (address: string, page: number = 1)   => get<WalletEventsResponse>(`/wallet/${address}?page=${page}`),
   registerContract: (meta: ContractMeta)                  => post<{ ok: boolean }>("/contracts", meta),
+  proposedOutcome:  (id: string)                          => get<ProposedOutcome>(`/outcomes/${id}`),
+  challengeOutcome: (id: string, payload: { challenger: string; bond: string; signed_xdr: string }) =>
+    post<ChallengeResponse>(`/outcomes/${id}/challenge`, payload),
   streamEvents,
 };
