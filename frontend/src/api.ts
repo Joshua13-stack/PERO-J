@@ -63,6 +63,40 @@ export interface ChallengeResponse {
   outcome: ProposedOutcome;
 }
 
+export interface CouncilVote {
+  voter: string;
+  vote: "uphold" | "overturn" | "abstain";
+  cast_at: string;
+}
+
+export interface DisputeEvidence {
+  label: string;
+  url: string;
+}
+
+export interface DisputeTimelineEntry {
+  at: string;
+  actor: string;
+  action: string;
+  detail?: string;
+}
+
+export interface DisputeDetail {
+  market_id: string;
+  status: "proposed" | "challenged" | "finalized";
+  submitter: string;
+  proposed_outcome: string;
+  submitter_bond: string;
+  challenger?: string;
+  disputed_outcome?: string;
+  challenger_bond?: string;
+  council_votes: CouncilVote[];
+  council_size: number;
+  resolution_deadline?: string;
+  evidence: DisputeEvidence[];
+  timeline: DisputeTimelineEntry[];
+}
+
 export class ApiError extends Error {
   status: number;
 
@@ -159,5 +193,6 @@ export const api = {
   proposedOutcome:  (id: string)                          => get<ProposedOutcome>(`/outcomes/${id}`),
   challengeOutcome: (id: string, payload: { challenger: string; bond: string; signed_xdr: string }) =>
     post<ChallengeResponse>(`/outcomes/${id}/challenge`, payload),
+  dispute:          (marketId: string)                    => get<DisputeDetail>(`/disputes/${marketId}`),
   streamEvents,
 };
