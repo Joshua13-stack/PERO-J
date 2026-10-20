@@ -505,6 +505,53 @@ impl ExplorerContract {
         }
         out
     }
+
+    // ── Contract Upgrade & Fee Withdrawal (Multi-Signature Required) ──────────
+
+    /// Upgrade the contract's WASM bytecode.
+    ///
+    /// Requires authorization from the admin address. When the admin is
+    /// configured as a multi-signature Stellar account (e.g. 3-of-5 threshold),
+    /// multi-signature verification is enforced at the Stellar ledger protocol level.
+    pub fn upgrade(env: Env, admin: Address, new_wasm_hash: BytesN<32>) {
+        admin.require_auth();
+        if admin != Self::admin(&env) {
+            panic_with_error!(&env, Error::Unauthorized);
+        }
+        env.deployer().update_current_contract_wasm(new_wasm_hash.clone());
+        Self::bump_ttl(&env);
+        env.events().publish((symbol_short!("adm_upg"),), new_wasm_hash);
+    }
+
+    /// Withdraw accumulated platform fees.
+    ///
+    /// Requires authorization from the admin address. With a multi-sig admin,
+    /// fee withdrawals require protocol-level threshold signatures.
+    pub fn withdraw_fees(
+        env: Env,
+        admin: Address,
+        token: Address,
+        to: Address,
+        amount: i128,
+    ) {
+        admin.require_auth();
+        if admin != Self::admin(&env) {
+            panic_with_error!(&env, Error::Unauthorized);
+        }
+        if amount <= 0 {
+            panic_with_error!(&env, Error::LimitExceeded);
+        }
+        soroban_sdk::token::Client::new(&env, &token).transfer(
+            &env.current_contract_address(),
+            &to,
+            &amount,
+        );
+        Self::bump_ttl(&env);
+        env.events().publish(
+            (symbol_short!("fee_wd"),),
+            (token, to, amount),
+        );
+    }
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -1124,5 +1171,39 @@ mod tests {
             String::from_str(&env, "StellarSwap v2"),
         );
         assert_eq!(client.get_contract(&cid).name, String::from_str(&env, "StellarSwap v2"));
+    }
+
+    // ── Multi-Signature Admin: Upgrade & Fee Withdrawal ─────────────────────
+
+    #[test]
+    #[should_panic]
+    fn test_non_admin_cannot_upgrade() {
+        let (env, client) = setup!();
+        let admin = Address::generate(&env);
+        let attacker = Address::generate(&env);
+        client.init(&admin);
+        let wasm_hash = BytesN::from_array(&env, &[1u8; 32]);
+        client.upgrade(&attacker, &wasm_hash);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_non_admin_cannot_withdraw_fees() {
+        let (env, client) = setup!();
+        let admin = Address::generate(&env);
+        let attacker = Address::generate(&env);
+        let token = Address::generate(&env);
+        client.init(&admin);
+        client.withdraw_fees(&attacker, &token, &attacker, &100i128);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_withdraw_fees_rejects_non_positive_amount() {
+        let (env, client) = setup!();
+        let admin = Address::generate(&env);
+        let token = Address::generate(&env);
+        client.init(&admin);
+        client.withdraw_fees(&admin, &token, &admin, &0i128);
     }
 }

@@ -6,6 +6,39 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Security
+
+- [#1034](../../issues/1034) Implement replay attack defenses on off-chain oracle signed payloads
+  - Enforce domain separator `PERO-J_ORACLE_ATTESTATION_V1`, `chain_id`, `market_id`, and `nonce` in canonical signed message.
+  - Reject signatures with timestamp older than 5 minutes or ahead of clock drift.
+  - Enforce database consumed nonces table with unique composite constraint `(provider_id, nonce)`.
+  - Expose verified endpoint `/api/oracle/attestations` in indexer.
+
+Closes [#1034](../../issues/1034)
+
+- [#1030](../../issues/1030) Implement multi-signature admin key requirement for contract upgrade and fee withdrawal
+  - Add `upgrade` and `withdraw_fees` to explorer contract requiring admin authorization.
+  - Enforce 3-of-5 threshold at the Stellar ledger protocol level across low, medium, and high account thresholds.
+  - Provide multi-sig provisioning script and operator signing workflow.
+
+Closes [#1030](../../issues/1030)
+
+### Monitoring & Infrastructure
+
+- [#1028](../../issues/1028) Implement Discord/Slack webhook notification bot for high-severity alerts
+  - Build lightweight webhook notifier in `backend/shared/notifier.ts`.
+  - Add rich embeds and Block Kit payloads with severity color bars and direct links to web UI.
+  - Route alerts across `#alerts-critical`, `#oracle-disputes`, and `#audit-events` with sliding-window rate limiting.
+
+Closes [#1028](../../issues/1028)
+
+- [#1027](../../issues/1027) Configure synthetic probe monitoring frontend uptime and Soroban RPC health
+  - Add Blackbox exporter configuration and Prometheus alert rules evaluating every 30 seconds.
+  - Fire critical alert if frontend or Soroban RPC response latency exceeds 2.5 seconds SLA.
+  - Add standalone synthetic probe runner and documentation.
+
+Closes [#1027](../../issues/1027)
+
 ### Bug Fixes
 
 - [#747](../../issues/747) `get_events()` must cap `limit` to prevent CPU exhaustion ([`58139bf`](../../commit/58139bfb29c0e0cddc1af6f34af9566a4ccb5a11))

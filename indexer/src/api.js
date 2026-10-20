@@ -5,6 +5,10 @@ import { db } from "./db.js";
 import { fetchTokenMetadata } from "./sep41Metadata.js";
 import { health } from "./index.js";
 import { eventEmitter } from "./events.js";
+import {
+  verifyAndConsumeOracleAttestation,
+  OracleVerificationError,
+} from "./oracle.js";
 
 const PORT = process.env.PORT || 3001;
 
@@ -387,6 +391,27 @@ export function createApp() {
       res.status(201).json({ ok: true });
     })
   );
+
+  // POST /api/oracle/attestations — submit and verify off-chain oracle signed payload
+  // Enforces domain separation, freshness window (< 5m), cryptographic signature verification,
+  // and replay attack defense via database unique constraint on (provider_id, nonce).
+  const handleOracleAttestation = asyncHandler(async (req, res) => {
+    try {
+      const result = await verifyAndConsumeOracleAttestation(req.body);
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof OracleVerificationError) {
+        return res.status(err.statusCode).json({
+          error: err.message,
+          code: err.code,
+        });
+      }
+      throw err;
+    }
+  });
+
+  app.post("/api/oracle/attestations", handleOracleAttestation);
+  app.post("/api/oracle/attestation", handleOracleAttestation);
 
   return app;
 }

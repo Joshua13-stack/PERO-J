@@ -126,6 +126,22 @@ const migrations = [
       ALTER TABLE events ADD COLUMN IF NOT EXISTS sac_asset TEXT;
     `,
   },
+  {
+    id: 7,
+    name: "create_consumed_oracle_nonces",
+    sql: `
+      CREATE TABLE IF NOT EXISTS consumed_oracle_nonces (
+        provider_id TEXT NOT NULL,
+        nonce       TEXT NOT NULL,
+        market_id   TEXT NOT NULL,
+        chain_id    TEXT NOT NULL,
+        timestamp   TIMESTAMPTZ NOT NULL,
+        created_at  TIMESTAMPTZ DEFAULT NOW(),
+        PRIMARY KEY (provider_id, nonce)
+      );
+      CREATE INDEX IF NOT EXISTS idx_consumed_oracle_nonces_timestamp ON consumed_oracle_nonces(timestamp);
+    `,
+  },
 ];
 
 process.on("unhandledRejection", async (err) => {
@@ -550,6 +566,37 @@ export const db = {
        VALUES ('last_ledger', $1)
        ON CONFLICT (key) DO UPDATE SET value = $1`,
       [String(ledger)]
+    );
+  },
+
+  /**
+   * Check if an oracle nonce has already been consumed for a given provider.
+   *
+   * @param {string} providerId
+   * @param {string} nonce
+   * @returns {Promise<boolean>}
+   */
+  async isNonceConsumed(providerId, nonce) {
+    const { rows } = await pool.query(
+      "SELECT 1 FROM consumed_oracle_nonces WHERE provider_id = $1 AND nonce = $2 LIMIT 1",
+      [providerId, nonce]
+    );
+    return rows.length > 0;
+  },
+
+  /**
+   * Atomically records a consumed oracle nonce with unique constraint (provider_id, nonce).
+   * Throws an error with code '23505' if a replay is attempted.
+   *
+   * @param {{ provider_id: string, nonce: string, market_id: string, chain_id: string, timestamp: Date | string | number }} payload
+   * @returns {Promise<void>}
+   */
+  async recordOracleNonce({ provider_id, nonce, market_id, chain_id, timestamp }) {
+    const ts = new Date(timestamp);
+    await pool.query(
+      `INSERT INTO consumed_oracle_nonces (provider_id, nonce, market_id, chain_id, timestamp)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [provider_id, nonce, market_id, chain_id, ts]
     );
   },
 };
