@@ -176,6 +176,18 @@ The disputes endpoint reads the Oracle contract on each request. Each dispute
 includes `affirmative_votes`, `negative_votes`, the individual `votes`, an ISO
 8601 `deadline`, and `remaining_seconds` / human-readable `remaining_time`.
 
+### Oracle council inactivity alerts
+
+When `ORACLE_CONTRACT_ID`, `ORACLE_COUNCIL_ROSTER`, and
+`PAGERDUTY_ROUTING_KEY` are configured, the indexer checks active disputes
+hourly and sends PagerDuty Events API v2 alerts when a dispute has not reached
+quorum after 24, 48, and 60 hours of its 72-hour voting period. The roster is a
+comma-separated list of council Stellar addresses. `ORACLE_COUNCIL_QUORUM` can
+set the required number of votes; when omitted, a strict majority of the
+configured roster is used. The PagerDuty service associated with the routing
+key should use an escalation policy that notifies the council roster. The
+monitor is disabled with a startup warning if any required setting is absent.
+
 ### Event sequence namespaces
 
 The `events` table tracks two distinct sequence numbers:
