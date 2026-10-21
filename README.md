@@ -124,9 +124,9 @@ This is equivalent to `docker compose up --build` and starts:
 `DATABASE_URL` is injected into the `indexer` service via the compose
 environment (defaulting to `postgres://peroj:peroj@postgres:5432/peroj`).
 Override it — along with `DATABASE_POOL_SIZE`, `RPC_URL`, `NETWORK_PASSPHRASE`,
-`EXPLORER_CONTRACT_ID`, and `API_ADMIN_KEY` — by exporting the variables or
-placing them in a `.env` file next to `docker-compose.yml` before running
-`make dev-docker`.
+`EXPLORER_CONTRACT_ID`, `ORACLE_CONTRACT_ID`, and `API_ADMIN_KEY` — by exporting
+the variables or placing them in a `.env` file next to `docker-compose.yml`
+before running `make dev-docker`.
 
 Stop the stack with `docker compose down` (add `-v` to also drop the database
 volume).
@@ -170,6 +170,11 @@ The `update` topic lets the indexer invalidate its ABI cache without polling sto
 | `DELETE /api/contracts/:id` | Remove contract ABI metadata (requires `Authorization: Bearer <API_ADMIN_KEY>`) |
 | `GET /api/wallet/:address` | Wallet event history |
 | `GET /api/tokens/:id/volume?decimals=` | 24-hour rolling transfer volume for a SEP-41 token. Optional `decimals` query param (integer 0–38) overrides the on-chain metadata lookup. |
+| `GET /api/v1/oracle/disputes` | Active Oracle disputes with asserted outcomes, disputer addresses, council votes and tallies, deadline, and remaining voting time. Requires `ORACLE_CONTRACT_ID`; returns HTTP 503 if it is unset. |
+
+The disputes endpoint reads the Oracle contract on each request. Each dispute
+includes `affirmative_votes`, `negative_votes`, the individual `votes`, an ISO
+8601 `deadline`, and `remaining_seconds` / human-readable `remaining_time`.
 
 ### Event sequence namespaces
 
