@@ -980,6 +980,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 ### Documentation
 
+- Auto-update CHANGELOG.md [skip ci] ([`a954297`](../../commit/a954297e05524281c6fe2ee5595c6a0b4de93f55))
+
 - Auto-update CHANGELOG.md [skip ci] ([`df76398`](../../commit/df763988e479afdfa18c2a322b814d5d6e3e6f5d))
 
 - Auto-update CHANGELOG.md [skip ci] ([`b45c611`](../../commit/b45c6111c8e3f46bd1c1237e443a98654f9e5198))
@@ -1870,6 +1872,30 @@ Add a tests/integration/ directory with stub tests that document the
 ### Indexer
 
 - Treat 'function not found' as missing in validateSep41 ([`8c3d338`](../../commit/8c3d338dafb16a53a8035b1db346a5ea28bc3723))
+
+
+### Infra
+
+- Add TLS certificate expiry monitoring script and cron workflow ([#1017](../../issues/1017)) ([`f91c0b4`](../../commit/f91c0b47821bf166868a07a14793b90f399cd3e5))
+
+- Add scripts/check-tls-expiry.sh:
+      Bash script that checks TLS cert expiry for one or more HOST:PORT endpoints
+      Defaults to a 15-day warning threshold (WARN_DAYS env var)
+      Sends optional alerts via:
+        ALERT_WEBHOOK_URL – Slack / Discord / generic webhook
+        NOTIFY_EMAIL      – e-mail via the local 'mail' command
+      Exits non-zero if any certificate is expired or expires within WARN_DAYS
+
+  - Add .github/workflows/tls-monitor.yml:
+      Runs daily at 07:00 UTC via cron
+      Also dispatchable manually (workflow_dispatch) with an optional hosts override
+      Reads endpoint list from repository variable TLS_HOSTS (Settings > Variables)
+      Reads ALERT_WEBHOOK_URL and NOTIFY_EMAIL from repository secrets
+      Prints actionable error annotations when a cert is about to expire
+      Includes reminder to configure certbot renew on the production host
+
+  Closes [#1017](../../issues/1017)
+
 
 
 ### Security
