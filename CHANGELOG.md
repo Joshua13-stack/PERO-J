@@ -980,6 +980,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 ### Documentation
 
+- Auto-update CHANGELOG.md [skip ci] ([`df76398`](../../commit/df763988e479afdfa18c2a322b814d5d6e3e6f5d))
+
 - Auto-update CHANGELOG.md [skip ci] ([`b45c611`](../../commit/b45c6111c8e3f46bd1c1237e443a98654f9e5198))
 
 - Auto-update CHANGELOG.md [skip ci] ([`e71c08a`](../../commit/e71c08aea5b61f0b172f76fce66605f53a17dfcd))
@@ -1470,6 +1472,13 @@ Add a minimal, non-root production Docker image for the PERO-J backend
   for non-existent services. The indexer is plain JavaScript run directly with
   `node` (no TypeScript compile step), so the multi-stage build installs
   production dependencies and copies only the runtime code.
+
+
+- Add automated staging deployment pipeline to testnet ([`f4ccf10`](../../commit/f4ccf108c4e3524e7a716b684938c63a044abcf3))
+
+Add `.github/workflows/deploy-staging.yml` which deploys the latest `main`
+  to the staging environment on Stellar testnet on every merge, addressing
+  issue [#1014](../../issues/1014).
 
 
 - Configure database pool size ([`df7e5bb`](../../commit/df7e5bbd7b70c022f583f715bd716993b77d7f55))
