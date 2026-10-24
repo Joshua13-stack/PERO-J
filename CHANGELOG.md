@@ -1013,6 +1013,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 ### Documentation
 
+- Auto-update CHANGELOG.md [skip ci] ([`cb31d0a`](../../commit/cb31d0afd879d895594f0c2583e90834679a6b45))
+
 - Auto-update CHANGELOG.md [skip ci] ([`fff7807`](../../commit/fff7807d42233b6f630b4f58b6cf0409c2472a44))
 
 - Auto-update CHANGELOG.md [skip ci] ([`4cbcdde`](../../commit/4cbcdde7c9a3ecc0925595a0e9b7af21d3949275))
@@ -1530,6 +1532,11 @@ Add a minimal, non-root production Docker image for the PERO-J backend
 Add `.github/workflows/deploy-staging.yml` which deploys the latest `main`
   to the staging environment on Stellar testnet on every merge, addressing
   issue [#1014](../../issues/1014).
+
+
+- Monitor council inactivity ([`b5dac8c`](../../commit/b5dac8c7a912aa947664e47b9261e1656c9a2cdc))
+
+Add hourly quorum checks and PagerDuty escalation at 24h, 48h, and 60h. Resolve alerts when quorum is reached or disputes close.
 
 
 - Add oracle disputes endpoint ([`d7b3067`](../../commit/d7b3067a32c7983a079111764ecf94bb175e1773))
