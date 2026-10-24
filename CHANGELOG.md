@@ -28,6 +28,26 @@ Closes [#1008](../../issues/1008)
 Closes [#1006](../../issues/1006)
 
 
+- [#1002](../../issues/1002) feat(frontend): support additional Stellar wallets including ([`1b13684`](../../commit/1b13684ec09124bfb3b5b949a430b2045d818d16))
+
+Closes [#1002](../../issues/1002)
+
+
+- [#1000](../../issues/1000) feat(frontend): implement graceful fallback from Backend API ([`b1ed360`](../../commit/b1ed36068cf0b08e82c77842a470ac75c683b906))
+
+Closes [#1000](../../issues/1000)
+
+
+- [#994](../../issues/994) feat(frontend): build public Dispute Detail page showing bond ([`6a63119`](../../commit/6a631190d689e18d2ac9537eb6c2d61e3aeb4b1b))
+
+Closes [#994](../../issues/994)
+
+
+- [#993](../../issues/993) feat(frontend): build Oracle Challenge modal with live countdo ([`10fc7b0`](../../commit/10fc7b0066d835100e2a19032c7df1cbd40ad97e))
+
+Closes [#993](../../issues/993)
+
+
 - [#747](../../issues/747) `get_events()` must cap `limit` to prevent CPU exhaustion ([`58139bf`](../../commit/58139bfb29c0e0cddc1af6f34af9566a4ccb5a11))
 
 Closes [#747](../../issues/747)
@@ -979,6 +999,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 
 ### Documentation
+
+- Auto-update CHANGELOG.md [skip ci] ([`6a5ac8a`](../../commit/6a5ac8ab4f84444a567c815942c1be642ec319da))
 
 - Auto-update CHANGELOG.md [skip ci] ([`a954297`](../../commit/a954297e05524281c6fe2ee5595c6a0b4de93f55))
 
