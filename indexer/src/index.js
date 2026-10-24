@@ -188,12 +188,14 @@ export function updateEventContractId(ev) {
 }
 
 let shuttingDown = false;
+let stopCouncilInactivityMonitor;
 
 function gracefulShutdown() {
   if (shuttingDown) {
     return;
   }
   shuttingDown = true;
+  stopCouncilInactivityMonitor?.();
   console.log("Shutdown signal received, finishing current iteration…");
 }
 
@@ -225,6 +227,19 @@ async function run() {
   startApi();
 
   await validateNetwork(rpc);
+
+  const councilMonitorConfig = getCouncilInactivityConfig();
+  if (councilMonitorConfig) {
+    stopCouncilInactivityMonitor = startCouncilInactivityMonitor({
+      fetchActive: oracleDisputes.fetchActive,
+      config: councilMonitorConfig,
+    });
+    console.log("[oracle monitor] council inactivity monitoring enabled");
+  } else {
+    console.warn(
+      "[oracle monitor] disabled: configure ORACLE_CONTRACT_ID, PAGERDUTY_ROUTING_KEY, and ORACLE_COUNCIL_ROSTER",
+    );
+  }
 
   const persisted = await db.getCursor();
   let cursor = persisted ?? (START_LEDGER || (await rpc.getLatestLedger()).sequence - 100);

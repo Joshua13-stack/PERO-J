@@ -22,6 +22,9 @@ All Kubernetes resources are located in the `k8s/` directory:
 | `HORIZON_URL` | Horizon REST endpoint | `https://horizon-testnet.stellar.org` |
 | `NETWORK_PASSPHRASE` | Stellar network passphrase | `Test SDF Network ; September 2015` |
 | `ORACLE_CONTRACT_ID` | Deployed Oracle contract ID for `GET /api/v1/oracle/disputes` | (unset; disputes endpoint returns HTTP 503) |
+| `ORACLE_COUNCIL_ROSTER` | Comma-separated council Stellar addresses for the inactivity monitor | (unset; monitor disabled) |
+| `ORACLE_COUNCIL_QUORUM` | Required council vote count; defaults to a strict majority of the roster | (unset) |
+| `PAGERDUTY_ROUTING_KEY` | PagerDuty Events API v2 integration routing key; configure its service escalation policy for the council roster | (unset; monitor disabled) |
 | `START_LEDGER` | Starting ledger sequence (0 to auto-resume) | `0` |
 | `POLL_MS` | Ingestion poll interval in ms | `5000` |
 | `PORT` | API server listen port | `3001` |
