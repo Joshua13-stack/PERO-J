@@ -81,6 +81,7 @@ services:
       RPC_URL: ${RPC_URL:-https://soroban-testnet.stellar.org}
       NETWORK_PASSPHRASE: ${NETWORK_PASSPHRASE:-Test SDF Network ; September 2015}
       EXPLORER_CONTRACT_ID: ${EXPLORER_CONTRACT_ID:-}
+      ORACLE_CONTRACT_ID: ${ORACLE_CONTRACT_ID:-}
       API_ADMIN_KEY: ${API_ADMIN_KEY:-}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
     command: ["npm", "run", "migrate"]

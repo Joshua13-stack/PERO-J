@@ -3,6 +3,7 @@ import rateLimit from "express-rate-limit";
 import { StrKey } from "@stellar/stellar-sdk";
 import { db } from "./db.js";
 import { fetchTokenMetadata } from "./sep41Metadata.js";
+import { formatOracleDisputes, oracleDisputes } from "./oracleDisputes.js";
 import { health } from "./index.js";
 import { eventEmitter } from "./events.js";
 import { MAX_TITLE_LEN, MAX_DESCRIPTION_LEN } from "./sanitize.js";
@@ -189,6 +190,20 @@ export function createApp() {
       };
       res.setHeader("Cache-Control", "public, max-age=60");
       return res.json(result);
+    })
+  );
+
+  // GET /api/v1/oracle/disputes — active disputes and current council votes
+  app.get(
+    "/api/v1/oracle/disputes",
+    asyncHandler(async (_req, res) => {
+      if (!process.env.ORACLE_CONTRACT_ID) {
+        return res.status(503).json({ error: "Oracle contract is not configured" });
+      }
+
+      const rows = await oracleDisputes.fetchActive();
+      res.setHeader("Cache-Control", "no-store");
+      return res.json({ disputes: formatOracleDisputes(rows) });
     })
   );
 

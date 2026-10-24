@@ -21,6 +21,7 @@ All Kubernetes resources are located in the `k8s/` directory:
 | `SOROBAN_RPC_URL` | Soroban RPC endpoint | `https://soroban-testnet.stellar.org` |
 | `HORIZON_URL` | Horizon REST endpoint | `https://horizon-testnet.stellar.org` |
 | `NETWORK_PASSPHRASE` | Stellar network passphrase | `Test SDF Network ; September 2015` |
+| `ORACLE_CONTRACT_ID` | Deployed Oracle contract ID for `GET /api/v1/oracle/disputes` | (unset; disputes endpoint returns HTTP 503) |
 | `START_LEDGER` | Starting ledger sequence (0 to auto-resume) | `0` |
 | `POLL_MS` | Ingestion poll interval in ms | `5000` |
 | `PORT` | API server listen port | `3001` |
