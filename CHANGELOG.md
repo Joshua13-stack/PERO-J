@@ -1000,6 +1000,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 ### Documentation
 
+- Auto-update CHANGELOG.md [skip ci] ([`bb1f665`](../../commit/bb1f665a919a2b0d9b1e18f63f3f7122204ccf03))
+
 - Auto-update CHANGELOG.md [skip ci] ([`ae389b7`](../../commit/ae389b700892fb2818ba1f910e878e0cb9682390))
 
 - Auto-update CHANGELOG.md [skip ci] ([`6a5ac8a`](../../commit/6a5ac8ab4f84444a567c815942c1be642ec319da))
@@ -1358,6 +1360,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 
 ### Features
+
+- Add Grafana dashboards for pipeline health, oracle states, and business KPIs (closes [#1024](../../issues/1024)) ([`f01972e`](../../commit/f01972e6abf25429044b1842fc7360f668ab96f7))
 
 - Deploy public status page with network latency, RPC status, and indexer lag (closes [#1025](../../issues/1025)) ([`543bebc`](../../commit/543bebc8e7f1e740b13266749945de9b56bc1c2a))
 
