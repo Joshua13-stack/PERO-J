@@ -17,13 +17,17 @@ const asyncHandler = (fn) => (req, res, next) => {
  * Admin-key authentication middleware for privileged operations.
  * Reads the expected key from the API_ADMIN_KEY environment variable
  * and validates it against an Authorization: Bearer <key> header.
+ *
+ * During a zero-downtime key rotation (see docs/SECRET-ROTATION.md) the
+ * previous key may be supplied via API_ADMIN_KEY_PREVIOUS and is accepted
+ * until it is removed at the end of the overlap window.
  */
 const requireAdminKey = (req, res, next) => {
   const authHeader = req.headers.authorization || "";
   const match = authHeader.match(/^Bearer\s+(.+)$/i);
   const token = match ? match[1] : null;
-  const expected = process.env.API_ADMIN_KEY;
-  if (!expected || !token || token !== expected) {
+  const accepted = [process.env.API_ADMIN_KEY, process.env.API_ADMIN_KEY_PREVIOUS].filter(Boolean);
+  if (!token || !accepted.includes(token)) {
     return res.status(401).json({ error: "Unauthorized" });
   }
   next();
