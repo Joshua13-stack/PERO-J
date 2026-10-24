@@ -128,18 +128,47 @@ const migrations = [
   },
   {
     id: 7,
-    name: "create_consumed_oracle_nonces",
+    name: "create_oracle_and_markets_tables",
     sql: `
-      CREATE TABLE IF NOT EXISTS consumed_oracle_nonces (
-        provider_id TEXT NOT NULL,
-        nonce       TEXT NOT NULL,
-        market_id   TEXT NOT NULL,
-        chain_id    TEXT NOT NULL,
-        timestamp   TIMESTAMPTZ NOT NULL,
-        created_at  TIMESTAMPTZ DEFAULT NOW(),
-        PRIMARY KEY (provider_id, nonce)
+      CREATE TABLE IF NOT EXISTS markets (
+        id              TEXT PRIMARY KEY,
+        contract_id     TEXT NOT NULL,
+        oracle_state    TEXT NOT NULL DEFAULT 'pending',
+        outcome         TEXT,
+        created_at      TIMESTAMPTZ DEFAULT NOW(),
+        updated_at      TIMESTAMPTZ DEFAULT NOW()
       );
-      CREATE INDEX IF NOT EXISTS idx_consumed_oracle_nonces_timestamp ON consumed_oracle_nonces(timestamp);
+      CREATE INDEX IF NOT EXISTS idx_markets_contract ON markets(contract_id);
+      CREATE INDEX IF NOT EXISTS idx_markets_oracle_state ON markets(oracle_state);
+
+      CREATE TABLE IF NOT EXISTS oracle_submissions (
+        id              BIGSERIAL PRIMARY KEY,
+        market_id       TEXT NOT NULL,
+        submitter       TEXT NOT NULL,
+        outcome         TEXT NOT NULL,
+        ledger          BIGINT NOT NULL,
+        tx_hash         TEXT,
+        timestamp       TIMESTAMPTZ DEFAULT NOW(),
+        status          TEXT NOT NULL DEFAULT 'pending',
+        created_at      TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_oracle_submissions_market ON oracle_submissions(market_id);
+      CREATE INDEX IF NOT EXISTS idx_oracle_submissions_status ON oracle_submissions(status);
+      CREATE INDEX IF NOT EXISTS idx_oracle_submissions_ledger ON oracle_submissions(ledger);
+
+      CREATE TABLE IF NOT EXISTS oracle_disputes (
+        id              BIGSERIAL PRIMARY KEY,
+        submission_id   BIGINT NOT NULL REFERENCES oracle_submissions(id),
+        market_id       TEXT NOT NULL,
+        disputer        TEXT NOT NULL,
+        reason          TEXT,
+        ledger          BIGINT NOT NULL,
+        tx_hash         TEXT,
+        timestamp       TIMESTAMPTZ DEFAULT NOW(),
+        created_at      TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_oracle_disputes_submission ON oracle_disputes(submission_id);
+      CREATE INDEX IF NOT EXISTS idx_oracle_disputes_market ON oracle_disputes(market_id);
     `,
   },
 ];
@@ -569,35 +598,144 @@ export const db = {
     );
   },
 
+  // ── Oracle & Markets ────────────────────────────────────────────────────────
+
   /**
-   * Check if an oracle nonce has already been consumed for a given provider.
+   * Insert or update a market record.
+   * Uses pool.query — safe to call outside of init().
    *
-   * @param {string} providerId
-   * @param {string} nonce
-   * @returns {Promise<boolean>}
+   * @param {object} market
+   * @param {string} market.id - Market identifier
+   * @param {string} market.contract_id - Contract address
+   * @param {string} market.oracle_state - Oracle state (pending, submitted, disputed, finalized)
+   * @param {string} [market.outcome] - Optional outcome value
+   * @returns {Promise<void>}
    */
-  async isNonceConsumed(providerId, nonce) {
-    const { rows } = await pool.query(
-      "SELECT 1 FROM consumed_oracle_nonces WHERE provider_id = $1 AND nonce = $2 LIMIT 1",
-      [providerId, nonce]
+  async upsertMarket(market) {
+    await pool.query(
+      `INSERT INTO markets (id, contract_id, oracle_state, outcome, updated_at)
+       VALUES ($1, $2, $3, $4, NOW())
+       ON CONFLICT (id) DO UPDATE SET 
+         oracle_state = $3,
+         outcome = $4,
+         updated_at = NOW()`,
+      [market.id, market.contract_id, market.oracle_state, market.outcome ?? null]
     );
-    return rows.length > 0;
   },
 
   /**
-   * Atomically records a consumed oracle nonce with unique constraint (provider_id, nonce).
-   * Throws an error with code '23505' if a replay is attempted.
+   * Get market by ID.
+   * Uses pool.query — safe to call outside of init().
    *
-   * @param {{ provider_id: string, nonce: string, market_id: string, chain_id: string, timestamp: Date | string | number }} payload
+   * @param {string} marketId
+   * @returns {Promise<object|null>}
+   */
+  async getMarket(marketId) {
+    const { rows } = await pool.query("SELECT * FROM markets WHERE id = $1", [marketId]);
+    return rows[0] ?? null;
+  },
+
+  /**
+   * Insert an oracle submission record.
+   * Uses pool.query — safe to call outside of init().
+   *
+   * @param {object} submission
+   * @param {string} submission.market_id - Market identifier
+   * @param {string} submission.submitter - Submitter address
+   * @param {string} submission.outcome - Submitted outcome
+   * @param {number} submission.ledger - Ledger number
+   * @param {string} [submission.tx_hash] - Transaction hash
+   * @param {string} [submission.status] - Status (pending, disputed, finalized)
+   * @returns {Promise<number>} The inserted submission ID
+   */
+  async insertOracleSubmission(submission) {
+    const { rows } = await pool.query(
+      `INSERT INTO oracle_submissions (market_id, submitter, outcome, ledger, tx_hash, status, timestamp)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW())
+       RETURNING id`,
+      [
+        submission.market_id,
+        submission.submitter,
+        submission.outcome,
+        submission.ledger,
+        submission.tx_hash ?? null,
+        submission.status ?? "pending",
+      ]
+    );
+    return rows[0].id;
+  },
+
+  /**
+   * Update oracle submission status.
+   * Uses pool.query — safe to call outside of init().
+   *
+   * @param {number} submissionId
+   * @param {string} status
    * @returns {Promise<void>}
    */
-  async recordOracleNonce({ provider_id, nonce, market_id, chain_id, timestamp }) {
-    const ts = new Date(timestamp);
+  async updateOracleSubmissionStatus(submissionId, status) {
     await pool.query(
-      `INSERT INTO consumed_oracle_nonces (provider_id, nonce, market_id, chain_id, timestamp)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [provider_id, nonce, market_id, chain_id, ts]
+      `UPDATE oracle_submissions SET status = $1 WHERE id = $2`,
+      [status, submissionId]
     );
+  },
+
+  /**
+   * Get the most recent oracle submission for a market.
+   * Uses pool.query — safe to call outside of init().
+   *
+   * @param {string} marketId
+   * @returns {Promise<object|null>}
+   */
+  async getLatestOracleSubmission(marketId) {
+    const { rows } = await pool.query(
+      `SELECT * FROM oracle_submissions 
+       WHERE market_id = $1 
+       ORDER BY ledger DESC, id DESC 
+       LIMIT 1`,
+      [marketId]
+    );
+    return rows[0] ?? null;
+  },
+
+  /**
+   * Insert an oracle dispute record.
+   * Uses pool.query — safe to call outside of init().
+   *
+   * @param {object} dispute
+   * @param {number} dispute.submission_id - Submission being disputed
+   * @param {string} dispute.market_id - Market identifier
+   * @param {string} dispute.disputer - Disputer address
+   * @param {string} [dispute.reason] - Dispute reason
+   * @param {number} dispute.ledger - Ledger number
+   * @param {string} [dispute.tx_hash] - Transaction hash
+   * @returns {Promise<number>} The inserted dispute ID
+   */
+  async insertOracleDispute(dispute) {
+    const { rows } = await pool.query(
+      `INSERT INTO oracle_disputes (submission_id, market_id, disputer, reason, ledger, tx_hash, timestamp)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW())
+       RETURNING id`,
+      [
+        dispute.submission_id,
+        dispute.market_id,
+        dispute.disputer,
+        dispute.reason ?? null,
+        dispute.ledger,
+        dispute.tx_hash ?? null,
+      ]
+    );
+    return rows[0].id;
+  },
+
+  /**
+   * Execute a raw query (for testing or advanced use).
+   * @param {string} text
+   * @param {Array} [params]
+   * @returns {Promise<object>}
+   */
+  async query(text, params) {
+    return pool.query(text, params);
   },
 };
 
