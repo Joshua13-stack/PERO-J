@@ -1013,6 +1013,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 ### Documentation
 
+- Auto-update CHANGELOG.md [skip ci] ([`12ebff1`](../../commit/12ebff19105220c7724abb8d8567796784d54021))
+
 - Auto-update CHANGELOG.md [skip ci] ([`cb31d0a`](../../commit/cb31d0afd879d895594f0c2583e90834679a6b45))
 
 - Auto-update CHANGELOG.md [skip ci] ([`fff7807`](../../commit/fff7807d42233b6f630b4f58b6cf0409c2472a44))
@@ -1381,6 +1383,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 
 ### Features
+
+- Add politics and science-weather adapters ([`b76cff2`](../../commit/b76cff2b06c739da9d2ed5f689384eca51c4a4eb))
 
 - Add Grafana dashboards for pipeline health, oracle states, and business KPIs (closes [#1024](../../issues/1024)) ([`f01972e`](../../commit/f01972e6abf25429044b1842fc7360f668ab96f7))
 
