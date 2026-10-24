@@ -1000,6 +1000,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 ### Documentation
 
+- Auto-update CHANGELOG.md [skip ci] ([`94c4279`](../../commit/94c42798988f72944c9a6304e18bb72060fa99d8))
+
 - Auto-update CHANGELOG.md [skip ci] ([`bb1f665`](../../commit/bb1f665a919a2b0d9b1e18f63f3f7122204ccf03))
 
 - Auto-update CHANGELOG.md [skip ci] ([`ae389b7`](../../commit/ae389b700892fb2818ba1f910e878e0cb9682390))
@@ -1905,6 +1907,8 @@ Add a tests/integration/ directory with stub tests that document the
 
 
 ### Infra
+
+- Add automated zero-downtime secret rotation script and runbook (closes [#1020](../../issues/1020)) ([`dcc7b91`](../../commit/dcc7b91081a165d1e7a81fdabf61a537f264b747))
 
 - Add TLS certificate expiry monitoring script and cron workflow ([#1017](../../issues/1017)) ([`f91c0b4`](../../commit/f91c0b47821bf166868a07a14793b90f399cd3e5))
 
