@@ -6,39 +6,6 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
-### Security
-
-- [#1034](../../issues/1034) Implement replay attack defenses on off-chain oracle signed payloads
-  - Enforce domain separator `PERO-J_ORACLE_ATTESTATION_V1`, `chain_id`, `market_id`, and `nonce` in canonical signed message.
-  - Reject signatures with timestamp older than 5 minutes or ahead of clock drift.
-  - Enforce database consumed nonces table with unique composite constraint `(provider_id, nonce)`.
-  - Expose verified endpoint `/api/oracle/attestations` in indexer.
-
-Closes [#1034](../../issues/1034)
-
-- [#1030](../../issues/1030) Implement multi-signature admin key requirement for contract upgrade and fee withdrawal
-  - Add `upgrade` and `withdraw_fees` to explorer contract requiring admin authorization.
-  - Enforce 3-of-5 threshold at the Stellar ledger protocol level across low, medium, and high account thresholds.
-  - Provide multi-sig provisioning script and operator signing workflow.
-
-Closes [#1030](../../issues/1030)
-
-### Monitoring & Infrastructure
-
-- [#1028](../../issues/1028) Implement Discord/Slack webhook notification bot for high-severity alerts
-  - Build lightweight webhook notifier in `backend/shared/notifier.ts`.
-  - Add rich embeds and Block Kit payloads with severity color bars and direct links to web UI.
-  - Route alerts across `#alerts-critical`, `#oracle-disputes`, and `#audit-events` with sliding-window rate limiting.
-
-Closes [#1028](../../issues/1028)
-
-- [#1027](../../issues/1027) Configure synthetic probe monitoring frontend uptime and Soroban RPC health
-  - Add Blackbox exporter configuration and Prometheus alert rules evaluating every 30 seconds.
-  - Fire critical alert if frontend or Soroban RPC response latency exceeds 2.5 seconds SLA.
-  - Add standalone synthetic probe runner and documentation.
-
-Closes [#1027](../../issues/1027)
-
 ### Bug Fixes
 
 - [#1010](../../issues/1010) ci: add PostgreSQL and Redis service containers for automated ([`8a75968`](../../commit/8a75968f5bab518935890dd1dd367f3b1f7df5f8))
@@ -79,6 +46,19 @@ Closes [#994](../../issues/994)
 - [#993](../../issues/993) feat(frontend): build Oracle Challenge modal with live countdo ([`10fc7b0`](../../commit/10fc7b0066d835100e2a19032c7df1cbd40ad97e))
 
 Closes [#993](../../issues/993)
+
+
+- Synthetic probe monitoring, webhook alert notifier, multisig admin, and oracle replay defenses ([`f3ca508`](../../commit/f3ca508b1c8c71b09d9c1c4c93edbe606372ecd3))
+
+- Configure synthetic probe monitoring for frontend uptime and Soroban RPC health ([#1027](../../issues/1027))
+  - Implement Discord/Slack webhook notification bot for high-severity alerts ([#1028](../../issues/1028))
+  - Implement multi-signature admin key requirement for contract upgrade and fee withdrawal ([#1030](../../issues/1030))
+  - Implement replay attack defenses on off-chain oracle signed payloads ([#1034](../../issues/1034))
+
+  Closes [#1027](../../issues/1027)
+  Closes [#1028](../../issues/1028)
+  Closes [#1030](../../issues/1030)
+  Closes [#1034](../../issues/1034)
 
 
 - [#747](../../issues/747) `get_events()` must cap `limit` to prevent CPU exhaustion ([`58139bf`](../../commit/58139bfb29c0e0cddc1af6f34af9566a4ccb5a11))
@@ -1032,6 +1012,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 
 ### Documentation
+
+- Auto-update CHANGELOG.md [skip ci] ([`4cbcdde`](../../commit/4cbcdde7c9a3ecc0925595a0e9b7af21d3949275))
 
 - Auto-update CHANGELOG.md [skip ci] ([`94c4279`](../../commit/94c42798988f72944c9a6304e18bb72060fa99d8))
 
