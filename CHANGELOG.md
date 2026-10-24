@@ -1000,6 +1000,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 ### Documentation
 
+- Auto-update CHANGELOG.md [skip ci] ([`ae389b7`](../../commit/ae389b700892fb2818ba1f910e878e0cb9682390))
+
 - Auto-update CHANGELOG.md [skip ci] ([`6a5ac8a`](../../commit/6a5ac8ab4f84444a567c815942c1be642ec319da))
 
 - Auto-update CHANGELOG.md [skip ci] ([`a954297`](../../commit/a954297e05524281c6fe2ee5595c6a0b4de93f55))
@@ -1356,6 +1358,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 
 ### Features
+
+- Deploy public status page with network latency, RPC status, and indexer lag (closes [#1025](../../issues/1025)) ([`543bebc`](../../commit/543bebc8e7f1e740b13266749945de9b56bc1c2a))
 
 - Wire oracle_submission and dispute event handlers into live event loop ([#932](../../issues/932)) ([`4b9ece9`](../../commit/4b9ece977f0fbd779fc100da5202090f03cd6451))
 
