@@ -1013,6 +1013,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 ### Documentation
 
+- Auto-update CHANGELOG.md [skip ci] ([`fff7807`](../../commit/fff7807d42233b6f630b4f58b6cf0409c2472a44))
+
 - Auto-update CHANGELOG.md [skip ci] ([`4cbcdde`](../../commit/4cbcdde7c9a3ecc0925595a0e9b7af21d3949275))
 
 - Auto-update CHANGELOG.md [skip ci] ([`94c4279`](../../commit/94c42798988f72944c9a6304e18bb72060fa99d8))
@@ -1529,6 +1531,8 @@ Add `.github/workflows/deploy-staging.yml` which deploys the latest `main`
   to the staging environment on Stellar testnet on every merge, addressing
   issue [#1014](../../issues/1014).
 
+
+- Add oracle disputes endpoint ([`d7b3067`](../../commit/d7b3067a32c7983a079111764ecf94bb175e1773))
 
 - Configure database pool size ([`df7e5bb`](../../commit/df7e5bbd7b70c022f583f715bd716993b77d7f55))
 
