@@ -1,5 +1,26 @@
 import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import NetworkStatusChip from "./NetworkStatusChip";
+
+/**
+ * Reads the stored or system theme preference.
+ * Priority: localStorage → system prefers-color-scheme → "light"
+ */
+function getInitialTheme(): "light" | "dark" {
+  if (typeof window === "undefined") return "light";
+  const stored = localStorage.getItem("theme") as "light" | "dark" | null;
+  if (stored === "light" || stored === "dark") return stored;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+/**
+ * Applies the theme to the document root and persists to localStorage.
+ */
+function applyTheme(theme: "light" | "dark") {
+  const root = document.documentElement;
+  root.setAttribute("data-theme", theme);
+  localStorage.setItem("theme", theme);
+}
 
 type WalletId = "freighter" | "xbull" | "albedo" | "lobstr" | "walletconnect";
 
@@ -63,29 +84,24 @@ export default function Nav() {
   const [walletError, setWalletError] = useState<string | null>(null);
   const nav = useNavigate();
 
+  // Apply theme on mount and whenever it changes
   useEffect(() => {
-    const root = document.documentElement;
-    if (theme === "dark") {
-      root.setAttribute("data-theme", "dark");
-    } else {
-      root.removeAttribute("data-theme");
-    }
-    localStorage.setItem("theme", theme);
+    applyTheme(theme);
   }, [theme]);
 
-  // Auto-reconnect to the previously chosen wallet provider on load.
+  // Keep in sync with system preference changes (e.g. user changes OS theme)
   useEffect(() => {
-    if (!wallet) return;
-    const option = WALLETS.find((w) => w.id === wallet);
-    if (!option) return;
-    // Best-effort reconnect; surface a non-blocking error if the wallet is unavailable.
-    try {
-      const available = typeof window !== "undefined";
-      if (!available) return;
-    } catch {
-      setWalletError(`Could not reconnect to ${option.name}. Please connect again.`);
-    }
-  }, [wallet]);
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (e: MediaQueryListEvent) => {
+      // Only follow system if user hasn't overridden it
+      const stored = localStorage.getItem("theme");
+      if (!stored) {
+        setTheme(e.matches ? "dark" : "light");
+      }
+    };
+    mq.addEventListener("change", handleChange);
+    return () => mq.removeEventListener("change", handleChange);
+  }, []);
 
   function toggleTheme() {
     setTheme((t) => (t === "dark" ? "light" : "dark"));
@@ -137,6 +153,7 @@ export default function Nav() {
         <NavLink
           to="/"
           onClick={() => setMenuOpen(false)}
+          aria-label="Soroban Explorer home"
           style={({ isActive }) => ({
             fontWeight: 700,
             fontSize: 16,
@@ -146,23 +163,28 @@ export default function Nav() {
             paddingBottom: isActive ? "4px" : "0px",
           })}
         >
-          ⬡ Soroban Explorer
+          <span aria-hidden="true">⬡</span> Soroban Explorer
         </NavLink>
         <button
           type="button"
           className="nav-toggle"
-          aria-label="Toggle navigation menu"
+          aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
           aria-expanded={menuOpen}
+          aria-controls="primary-navigation"
           onClick={() => setMenuOpen((o) => !o)}
         >
-          ☰
+          <span aria-hidden="true">☰</span>
         </button>
-        <nav className={`nav-links${menuOpen ? " open" : ""}`}>
+        <nav id="primary-navigation" aria-label="Primary" className={`nav-links${menuOpen ? " open" : ""}`}>
           <NavLink to="/contracts" onClick={() => setMenuOpen(false)} style={({ isActive }) => linkStyle(isActive)}>
             Contracts
           </NavLink>
-          <form onSubmit={search} className="nav-search">
+          <form onSubmit={search} className="nav-search" role="search">
+            <label htmlFor="nav-search-input" className="sr-only">
+              Search contract ID or wallet address
+            </label>
             <input
+              id="nav-search-input"
               value={q}
               onChange={e => setQ(e.target.value)}
               placeholder="Search contract ID or wallet address…"
@@ -170,24 +192,7 @@ export default function Nav() {
             />
             <button type="submit">Search</button>
           </form>
-          {activeWallet ? (
-            <button
-              type="button"
-              className="nav-wallet"
-              onClick={disconnectWallet}
-              title={`Disconnect ${activeWallet.name}`}
-            >
-              {activeWallet.icon} {activeWallet.name}
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="nav-wallet"
-              onClick={() => setWalletModalOpen(true)}
-            >
-              Connect Wallet
-            </button>
-          )}
+          <NetworkStatusChip sseUrl="/api/events/stream" />
           <button type="button" onClick={toggleTheme} aria-label="Toggle dark mode" className="nav-theme">
             {theme === "dark" ? "Light" : "Dark"}
           </button>
